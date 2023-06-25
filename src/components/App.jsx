@@ -11,6 +11,7 @@ import PropTypes from "prop-types";
 
 import "../components/styles.css"
 
+
 export const App = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [images, setImages] = useState([]);
@@ -30,7 +31,8 @@ export const App = () => {
           `https://pixabay.com/api/?q=${query}&page=${page}&key=${apiKey}&image_type=photo&orientation=horizontal&per_page=12`
         );
 
-        setImages(response.data.hits);
+        const newImages = response.data.hits;
+        setImages((prevImages) => [...prevImages, ...newImages]);
         setTotalHits(response.data.totalHits);
       } catch (error) {
         console.error('Error fetching images:', error);
@@ -46,6 +48,7 @@ export const App = () => {
   const handleSearchSubmit = (query) => {
     setSearchQuery(query);
     setCurrentPage(1);
+    setImages([]);
   };
 
   const handleImageClick = (imageUrl) => {
@@ -62,20 +65,18 @@ export const App = () => {
     setCurrentPage((prevPage) => prevPage + 1);
   };
 
-  const lastPage = Math.ceil(totalHits / 12);
-  const isLastPage = currentPage === lastPage;
-  const isImagesEmpty = images.length === 0;
+  const showLoadMoreButton = images.length < totalHits && images.length > 0;
 
   return (
     <div className="App">
       <Searchbar onSubmit={handleSearchSubmit} />
-      <ImageGallery images={images} onImageClick={handleImageClick} />
+      <ImageGallery images={images} onImageClick={handleImageClick} currentPage={currentPage} />
       {isLoading && (
         <div className="puff-container">
           <Puff color="#00BFFF" height={80} width={80} />
         </div>
       )}
-      {!isImagesEmpty && !isLastPage && (
+      {showLoadMoreButton && (
         <Button onClick={handleLoadMore}>
           Load more
         </Button>
